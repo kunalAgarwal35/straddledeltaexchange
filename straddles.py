@@ -22,7 +22,7 @@ STOP_LOSS_FACTOR = float(config['Strategy']['stop_loss_factor'])
 STOP_PRICE_FACTOR = float(config['Strategy']['stop_price_factor'])
 
 # ETHUSDT Configuration
-SYMBOL = config['ETHUSDT']['symbol']
+SYMBOL = config['SYMBOL']['symbol']
 
 def get_time_stamp():
     return str(int(datetime.datetime.utcnow().timestamp()) + 19800)
@@ -91,7 +91,7 @@ def get_eth_price():
     response = requests.get(f'{BASE_URL}/v2/tickers', headers=headers)
     response_data = response.json()
     try:
-        eth_price_data = [i for i in response_data['result'] if i['symbol'] == 'ETHUSDT'][0]
+        eth_price_data = [i for i in response_data['result'] if i['symbol'] == SYMBOL][0]
         return eth_price_data['close']
     except (IndexError, KeyError):
         raise Exception("Error fetching ETH price")
@@ -101,12 +101,12 @@ def get_atm_option_ids():
     call_options = requests.get(f'{BASE_URL}/v2/products?contract_types=call_options&states=live&page_size=10000').json()['result']
     put_options = requests.get(f'{BASE_URL}/v2/products?contract_types=put_options&states=live&page_size=10000').json()['result']
 
-    eth_calls = [opt for opt in call_options if 'ETH' in opt['description']]
-    eth_puts = [opt for opt in put_options if 'ETH' in opt['description']]
+    eth_calls = [opt for opt in call_options if SYMBOL.split('USDT')[0] in opt['description']]
+    eth_puts = [opt for opt in put_options if SYMBOL.split('USDT')[0] in opt['description']]
 
     atm_call = min(eth_calls, key=lambda x: abs(float(x['strike_price']) - eth_price))
     atm_put = min(eth_puts, key=lambda x: abs(float(x['strike_price']) - eth_price))
-    print('ETH Price: ', eth_price)
+    print(SYMBOL,' Price: ', eth_price)
     print('ATM CAll: ', atm_call['symbol'])
     print('ATM Put: ', atm_put['symbol'])
 
